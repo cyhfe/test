@@ -11,8 +11,32 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-model User {
-  id    Int     @id @default(autoincrement())
-  email String  @unique
-  name  String?
+model Response {
+  id            Int      @id @default(autoincrement())
+  lastBuildDate DateTime
+  total         Int
+  start         Int
+  display       Int
+  items         Item[]
+  createdAt     DateTime @default(now())
+}
+
+model Item {
+  id          Int      @id @default(autoincrement())
+  title       String
+  link        String
+  image       String
+  lprice      String
+  hprice      String
+  mallName    String
+  productId   String
+  productType String
+  brand       String
+  maker       String
+  category1   String
+  category2   String
+  category3   String
+  category4   String
+  response    Response @relation(fields: [responseId], references: [id])
+  responseId  Int
 }

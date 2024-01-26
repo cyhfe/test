@@ -7,6 +7,7 @@ import { publicProcedure, router } from "../../../server/trpc";
 import type { NextRequest } from "next/server";
 import { z } from "zod";
 import md5 from "md5";
+import prisma from "@/server/prisma";
 
 const appRouter = router({
   saveSearchResponse: publicProcedure
@@ -51,6 +52,27 @@ const appRouter = router({
         ...res,
         items: newItems,
       };
+
+      const { items: modifiedItems, lastBuildDate, ...rest } = modifiedRes;
+      try {
+        await prisma.response.create({
+          data: {
+            lastBuildDate: new Date(lastBuildDate),
+            ...rest,
+            items: {
+              createMany: {
+                data: modifiedItems,
+              },
+            },
+          },
+          include: {
+            items: true,
+          },
+        });
+      } catch (error) {
+        console.log(error);
+      }
+
       return modifiedRes;
     }),
 });
