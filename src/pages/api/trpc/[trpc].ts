@@ -1,7 +1,3 @@
-/**
- * This is the API-handler of your app that contains all your API routes.
- * On a bigger app, you will probably want to split this file up into multiple files.
- */
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 import { publicProcedure, router } from "../../../server/trpc";
 import type { NextRequest } from "next/server";
@@ -27,15 +23,17 @@ const appRouter = router({
         filter: "naverpay",
         exclude: "used:rental:cbshop",
       }).toString();
+
       const requestUrl =
         `https://openapi.naver.com/v1/search/shop.json?` + params;
-      const res = await fetch(requestUrl, {
+      const naverResponse = await fetch(requestUrl, {
         headers: {
           "X-Naver-Client-Id": process.env.NAVER_CLIENT_ID as string,
           "X-Naver-Client-Secret": process.env.NAVER_CLIENT_SECRET as string,
         },
       }).then((res) => res.json());
-      const items = res.items as { link: string; title: string }[];
+
+      const items = naverResponse.items as { link: string; title: string }[];
 
       const newItems = await Promise.all(
         items.map(async (item) => {
@@ -48,12 +46,14 @@ const appRouter = router({
           };
         })
       );
+
       const modifiedRes = {
-        ...res,
+        ...naverResponse,
         items: newItems,
       };
 
       const { items: modifiedItems, lastBuildDate, ...rest } = modifiedRes;
+
       try {
         await prisma.response.create({
           data: {
